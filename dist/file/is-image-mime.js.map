@@ -1,0 +1,1 @@
+{"version":3,"file":"is-image-mime.js","sourceRoot":"","sources":["../../src/file/is-image-mime.ts"],"names":[],"mappings":";;;AAAA,qCAA6C;AAEtC,MAAM,WAAW,GAAG,CAAE,QAAgB,EAAG,EAAE;IAChD,IAAI,CAAC,QAAQ,CAAC,UAAU,CAAE,QAAQ,CAAE;QAAG,OAAO,KAAK,CAAA;IACnD,IAAI,2BAAkB,CAAC,QAAQ,CAAE,QAAQ,CAAE;QAAG,OAAO,KAAK,CAAA;IAE1D,mDAAmD;IACnD,OAAO,IAAI,CAAA;AACb,CAAC,CAAA;AANY,QAAA,WAAW,eAMvB"}
