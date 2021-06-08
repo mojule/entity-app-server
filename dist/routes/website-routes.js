@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createWebsiteRoute = void 0;
-const dom_components_1 = require("@mojule/dom-components");
+const DomComponents = require("@mojule/dom-components");
 const files_1 = require("@mojule/files");
 const util_1 = require("@mojule/util");
 const path_1 = require("path");
@@ -54,7 +54,7 @@ const createWebsiteRoute = async (templates, staticPath, cachePath, resolveModel
     };
     const generateHtml = async (req, res) => {
         const start = process.hrtime();
-        const toDom = dom_components_1.default(document, templates);
+        const toDom = DomComponents(document, templates);
         const requestedPath = join(staticPath, '.' + req.path);
         let indexPath = join(requestedPath, 'index.html');
         let currentRoute = '';

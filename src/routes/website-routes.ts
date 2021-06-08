@@ -2,7 +2,7 @@ import {
   Request, Response, RequestHandler
 } from 'express-serve-static-core'
 
-import DomComponents from '@mojule/dom-components'
+import * as DomComponents from '@mojule/dom-components'
 import { readdirDeep, exists } from '@mojule/files'
 import { kebabCase } from '@mojule/util'
 
