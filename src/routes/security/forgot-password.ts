@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcryptjs'
-import express from 'express'
+import * as express from 'express'
 import { Request } from 'express-serve-static-core'
 import { v4 } from 'uuid'
 

@@ -1,4 +1,4 @@
-import express from 'express'
+import * as express from 'express'
 import { Request, Response } from 'express-serve-static-core'
 
 import { v4 } from 'uuid'

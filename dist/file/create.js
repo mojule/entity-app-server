@@ -9,7 +9,7 @@ const process_image_1 = require("./process-image");
 const is_image_mime_1 = require("./is-image-mime");
 const next_filename_1 = require("./next-filename");
 const { writeFile } = fs_1.promises;
-const { parse } = path_1.posix;
+const { parse, join } = path_1.posix;
 const noop = () => { };
 const FileCreateStorageFactory = (db, diskFileDeps, imageFileDeps, zipFileDeps) => {
     const diskFile = (fileData) => createDiskFile(db.collections.file, fileData, diskFileDeps.getStaticPath, diskFileDeps.getRootPath, diskFileDeps.validator || noop);
@@ -44,7 +44,7 @@ const FileCreateStorageFactory = (db, diskFileDeps, imageFileDeps, zipFileDeps) 
                 size: buffer.byteLength,
                 tags: []
             };
-            const getRootPath = () => path_1.join(zipFileDeps.getRootPath(fileData), dir);
+            const getRootPath = () => join(zipFileDeps.getRootPath(fileData), dir);
             if (is_image_mime_1.isImageMime(mimetype)) {
                 const imageId = await createImageFile(db.collections.imageFile, fileData, imageFileDeps.getStaticPath, getRootPath, imageFileDeps.validator || noop);
                 const ref = {
@@ -134,10 +134,10 @@ const createImageFile = async (collection, fileData, staticPath, rootPath, valid
 };
 const getPaths = (fileData, staticPath, rootPath) => {
     const { originalname } = fileData;
-    const destPath = path_1.join(staticPath(fileData), rootPath(fileData));
+    const destPath = join(staticPath(fileData), rootPath(fileData));
     const destName = next_filename_1.nextFilename(destPath, originalname);
-    const destFilePath = path_1.join(destPath, destName);
-    const uriPath = path_1.join('/', rootPath(fileData), destName);
+    const destFilePath = join(destPath, destName);
+    const uriPath = join('/', rootPath(fileData), destName);
     return { destPath, destName, destFilePath, uriPath };
 };
 //# sourceMappingURL=create.js.map

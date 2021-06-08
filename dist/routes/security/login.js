@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createSecurityLoginRoutes = void 0;
-const express_1 = require("express");
+const express = require("express");
 const delay_handler_1 = require("../../delay-handler");
-const postHandler = express_1.default.urlencoded({ extended: false });
+const postHandler = express.urlencoded({ extended: false });
 const createSecurityLoginRoutes = async (passport, options = { loginHandlers: [] }) => {
     const login = {
         method: 'post',

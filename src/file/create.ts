@@ -1,4 +1,4 @@
-import { join, posix } from 'path'
+import { posix } from 'path'
 import { promises } from 'fs'
 import * as mime from 'mime'
 
@@ -16,7 +16,7 @@ import { isImageMime } from './is-image-mime'
 import { nextFilename } from './next-filename'
 
 const { writeFile } = promises
-const { parse } = posix
+const { parse, join } = posix
 
 const noop = () => { }
 
