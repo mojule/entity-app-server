@@ -3,8 +3,8 @@ import { promises } from 'fs'
 import * as mime from 'mime'
 
 import { 
-  DbCollection, EntityDb, FileEntity, FileEntityMap, FileRef, ImageFileEntity, 
-  ImageFileRef, ZipFileEntity 
+  DbCollection, DbRefFor, EntityDb, FileEntity, FileEntityMap, ImageFileEntity, 
+  ZipFileEntity 
 } from '@mojule/entity-app'
 
 import { unzip, ensureParentDirectories, zip } from '@mojule/files'
@@ -19,6 +19,9 @@ const { writeFile } = promises
 const { parse, join } = posix
 
 const noop = () => { }
+
+type FileRef = DbRefFor<FileEntityMap,'file'>
+type ImageFileRef = DbRefFor<FileEntityMap,'imageFile'>
 
 export const FileCreateStorageFactory = (
   db: EntityDb<FileEntityMap>,

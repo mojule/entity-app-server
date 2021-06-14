@@ -72,7 +72,7 @@ const createSecurity = (store, log) => {
         const apiKey = {
             name: 'API Key for ' + user.name,
             user: {
-                _id: user['_id'],
+                _id: user._id,
                 _collection: 'user'
             },
             secret,

@@ -104,14 +104,14 @@ export const createSecurity = (store: EntityDb<SecurityEntityMap>, log: Logger) 
       })
   }
 
-  const createApiKey = async (user: UserEntity, tags?: string[]) => {
+  const createApiKey = async (user: UserEntity & DbItem, tags?: string[]) => {
     const uuid = v4()
     const secret = await bcrypt.hash(uuid, 10)
 
     const apiKey: ApiKeyEntity = {
       name: 'API Key for ' + user.name,
       user: {
-        _id: user['_id'],
+        _id: user._id,
         _collection: 'user'
       },
       secret,

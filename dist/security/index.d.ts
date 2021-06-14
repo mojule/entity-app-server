@@ -5,8 +5,14 @@ export declare const createSecurity: (store: EntityDb<SecurityEntityMap>, log: L
     strategy: (email: string, password: string, done: any) => void;
     serializeUser: (user: UserEntity & DbItem, cb: any) => void;
     deserializeUser: (_id: string, cb: (arg0: null | Error, arg1?: UserData | undefined) => void) => void;
-    apiKeyStrategy: (id: string, secret: string, done: (arg0: any, arg1?: boolean | (UserEntity & DbItem) | undefined) => void) => void;
-    createApiKey: (user: UserEntity, tags?: string[] | undefined) => Promise<{
+    apiKeyStrategy: (id: string, secret: string, done: (arg0: any, arg1?: boolean | ({
+        [x: string]: unknown;
+        password: string;
+        email: string;
+        name: string;
+        roles: string[];
+    } & DbItem) | undefined) => void) => void;
+    createApiKey: (user: UserEntity & DbItem, tags?: string[] | undefined) => Promise<{
         basicAuth: string;
         id: string;
     }>;

@@ -1,9 +1,19 @@
 /// <reference types="node" />
 import * as Jimp from 'jimp';
-import { ImageFileEntity } from '@mojule/entity-app';
 import { FileCreateData } from './types';
 export declare const processImageFileData: (fileData: FileCreateData) => Promise<{
-    imageFile: ImageFileEntity;
+    imageFile: {
+        [x: string]: unknown;
+        tags?: string[] | undefined;
+        meta: {
+            path: string;
+            mimetype: string;
+            size: number;
+            width: number;
+            height: number;
+        };
+        name: string;
+    };
     image: Jimp | undefined;
 }>;
 export declare const getImageDimensions: (mimetype: string, buffer: Buffer) => Promise<{
