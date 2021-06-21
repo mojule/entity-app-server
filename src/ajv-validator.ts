@@ -28,6 +28,14 @@ export const ajvValidator = <TEntityMap>(
 
   const allSchema = Object.assign( {}, entitySchemas, commonSchemas )
 
+  Object.keys( commonSchemas ).forEach( key => {
+    const schema = commonSchemas[ key ]
+
+    keyToIdMap.set( key, schema.$id )
+
+    ajv.addSchema( schema, schema.$id )
+  } )
+
   Object.keys( entitySchemas ).forEach( key => {
     const schema = entitySchemas[ key ]
     const refSchema = createRef( key )
@@ -35,15 +43,12 @@ export const ajvValidator = <TEntityMap>(
     keyToIdMap.set( key, schema.$id )
 
     ajv.addSchema( schema, schema.$id )
-    ajv.addSchema( refSchema, refSchema.$id )
-  } )
-
-  Object.keys( commonSchemas ).forEach( key => {
-    const schema = commonSchemas[ key ]
-
-    keyToIdMap.set( key, schema.$id )
-
-    ajv.addSchema( schema, schema.$id )
+    
+    if( ajv.schemas[ refSchema.$id ] === undefined ){
+      ajv.addSchema( refSchema, refSchema.$id )
+    } else {
+      console.warn( `Already found ${ refSchema.$id } when setting up ajv` )
+    }   
   } )
 
   const validator: ValidateEntity<TEntityMap> = async ( key, entity ) => {
