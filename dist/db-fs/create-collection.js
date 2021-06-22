@@ -5,7 +5,10 @@ const fs_1 = require("fs");
 const entity_app_1 = require("@mojule/entity-app");
 const util_1 = require("@mojule/util");
 const { readFile, writeFile, readdir, unlink, stat } = fs_1.promises;
-const createCollection = (path) => {
+const createCollection = (path, formatJson) => {
+    const stringify = (formatJson ?
+        (value) => JSON.stringify(value, null, 2) :
+        (value) => JSON.stringify(value));
     const filePath = (id) => `${path}/${id}.json`;
     const ids = async () => {
         const fileIds = (await readdir(path))
@@ -16,7 +19,7 @@ const createCollection = (path) => {
     const create = async (entity) => {
         const _id = util_1.randId();
         const dbEntity = Object.assign({ _id }, entity);
-        const json = JSON.stringify(dbEntity);
+        const json = stringify(dbEntity);
         await writeFile(filePath(_id), json, 'utf8');
         return _id;
     };
@@ -33,7 +36,7 @@ const createCollection = (path) => {
             throw Error('Expected document to have _id:string');
         // must exist
         await stat(filePath(_id));
-        const json = JSON.stringify(document);
+        const json = stringify(document);
         await writeFile(filePath(_id), json, 'utf8');
     };
     const saveMany = entity_app_1.defaultSaveMany(save);

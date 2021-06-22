@@ -16,22 +16,22 @@ const mkdirSafe = async (path, options) => {
             throw err;
     }
 };
-const initCollections = async (path, keys) => {
+const initCollections = async (path, keys, formatJson = false) => {
     const collections = {};
     await entity_app_1.eachEntityKey(keys, async (key) => {
         const collectionPath = path_1.posix.join(path, key);
         await mkdirSafe(collectionPath);
-        collections[key] = create_collection_1.createCollection(collectionPath);
+        collections[key] = create_collection_1.createCollection(collectionPath, formatJson);
     });
     return collections;
 };
-const createFsDb = async (name, keys, { dataPath } = { dataPath: './data/fs' }) => {
+const createFsDb = async (name, keys, { dataPath, formatJson } = { dataPath: './data/fs' }) => {
     name = util_1.kebabCase(name);
     const path = path_1.posix.join(dataPath, name);
     await mkdirSafe(path);
     const drop = async () => entity_app_1.defaultDrop(db)();
     const close = async () => { };
-    const collections = await initCollections(path, keys);
+    const collections = await initCollections(path, keys, formatJson);
     const db = { drop, close, collections };
     return db;
 };
