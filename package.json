@@ -1,6 +1,6 @@
 {
   "name": "@mojule/entity-app-server",
-  "version": "0.1.9",
+  "version": "0.1.11",
   "description": "REST, website generation for entity-app",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -29,6 +29,7 @@
     "@types/uuid": "^8.3.0"
   },
   "dependencies": {
+    "@entity-schema/json-schema-traverse": "^0.6.0",
     "@mojule/dom-components": "^0.2.2",
     "@mojule/entity-app": "^0.3.20",
     "@mojule/files": "^0.2.4",

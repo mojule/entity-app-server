@@ -11,8 +11,14 @@ import { randId } from '@mojule/util'
 const { readFile, writeFile, readdir, unlink, stat } = promises
 
 export const createCollection = <TEntity>(
-  path: string
+  path: string, formatJson: boolean
 ) => {
+  const stringify = (
+    formatJson ? 
+    ( value: any ) => JSON.stringify( value, null, 2 ):
+    ( value: any ) => JSON.stringify( value )
+  )
+    
   const filePath = ( id: string ) => `${ path }/${ id }.json`
 
   const ids: DbIds = async () => {
@@ -27,7 +33,7 @@ export const createCollection = <TEntity>(
   const create: DbCreate<TEntity> = async entity => {
     const _id = randId()
     const dbEntity = Object.assign( { _id }, entity )
-    const json = JSON.stringify( dbEntity )
+    const json = stringify( dbEntity )
 
     await writeFile( filePath( _id ), json, 'utf8' )
 
@@ -54,7 +60,7 @@ export const createCollection = <TEntity>(
     // must exist
     await stat( filePath( _id ) )
 
-    const json = JSON.stringify( document )
+    const json = stringify( document )
 
     await writeFile( filePath( _id ), json, 'utf8' )
   }

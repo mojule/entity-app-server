@@ -1,3 +1,4 @@
-export interface FsOptions {
+export type FsOptions = {
   dataPath: string
+  formatJson?: boolean
 }

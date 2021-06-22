@@ -20,7 +20,7 @@ const mkdirSafe = async ( path: string, options?: MakeDirectoryOptions ) => {
 }
 
 const initCollections = async <TEntityMap>(
-  path: string, keys: EntityKeys<TEntityMap>
+  path: string, keys: EntityKeys<TEntityMap>, formatJson = false
 ) => {
   const collections: DbCollections<TEntityMap> = <any>{}
 
@@ -29,7 +29,7 @@ const initCollections = async <TEntityMap>(
 
     await mkdirSafe( collectionPath )
 
-    collections[ key ] = createCollection( collectionPath )
+    collections[ key ] = createCollection( collectionPath, formatJson )
   } )
 
   return collections
@@ -37,7 +37,7 @@ const initCollections = async <TEntityMap>(
 
 export const createFsDb = async <TEntityMap>(
   name: string, keys: EntityKeys<TEntityMap>,
-  { dataPath }: FsOptions = { dataPath: './data/fs' }
+  { dataPath, formatJson }: FsOptions = { dataPath: './data/fs' }
 ) => {
   name = kebabCase( name )
 
@@ -48,7 +48,7 @@ export const createFsDb = async <TEntityMap>(
   const drop = async () => defaultDrop( db )()
   const close = async () => { }
 
-  const collections = await initCollections( path, keys )
+  const collections = await initCollections( path, keys, formatJson )
 
   const db: EntityDb<TEntityMap> = { drop, close, collections }
 
