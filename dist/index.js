@@ -11,12 +11,15 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./db-fs"), exports);
+__exportStar(require("./db-remote"), exports);
 __exportStar(require("./dom"), exports);
 __exportStar(require("./dom/parse"), exports);
 __exportStar(require("./dom/serialize"), exports);
 __exportStar(require("./dom/templates/include-resolver"), exports);
 __exportStar(require("./dom/templates/types"), exports);
+__exportStar(require("./file/copy-files"), exports);
 __exportStar(require("./file/create"), exports);
+__exportStar(require("./file/decorate-db-file-remove"), exports);
 __exportStar(require("./file/disk-file-to-create-data"), exports);
 __exportStar(require("./file/remove-files"), exports);
 __exportStar(require("./file/types"), exports);

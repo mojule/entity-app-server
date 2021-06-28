@@ -1,4 +1,5 @@
 export * from './db-fs'
+export * from './db-remote'
 
 export * from './dom'
 export * from './dom/parse'
@@ -6,7 +7,9 @@ export * from './dom/serialize'
 export * from './dom/templates/include-resolver'
 export * from './dom/templates/types'
 
+export * from './file/copy-files'
 export * from './file/create'
+export * from './file/decorate-db-file-remove'
 export * from './file/disk-file-to-create-data'
 export * from './file/remove-files'
 export * from './file/types'

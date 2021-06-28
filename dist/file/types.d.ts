@@ -19,8 +19,12 @@ export interface GetPaths {
     getStaticPath: GetFilePath;
     getRootPath: GetFilePath;
 }
+export declare type FileCreateOptions = {
+    isExtractOnly?: boolean;
+    overwriteExisting?: boolean;
+};
 export interface FileCreateDependencies<T extends FileEntity> extends GetPaths {
     validator?: (entity: T, buffer: Buffer) => void;
 }
-export declare type CreateDiskFile<T extends FileEntity> = (collection: DbCollection<T>, fileData: FileCreateData, staticPath: GetFilePath, rootPath: GetFilePath, validator: (entity: T, buffer: Buffer) => void) => Promise<string>;
-export declare type CreateZipFile = (collection: DbCollection<ZipFileEntity>, fileData: FileCreateData, staticPath: GetFilePath, rootPath: GetFilePath, validator: (entity: ZipFileEntity, buffer: Buffer) => void, createDiskFile: (fileData: FileCreateData) => Promise<string>, createImageFile: (fileData: FileCreateData) => Promise<string>) => Promise<string>;
+export declare type CreateDiskFile<T extends FileEntity> = (collection: DbCollection<T>, fileData: FileCreateData, staticPath: GetFilePath, rootPath: GetFilePath, validator: (entity: T, buffer: Buffer) => void, overwriteExisting: boolean) => Promise<string>;
+export declare type CreateZipFile = (collection: DbCollection<ZipFileEntity>, fileData: FileCreateData, staticPath: GetFilePath, rootPath: GetFilePath, validator: (entity: ZipFileEntity, buffer: Buffer) => void, createDiskFile: (fileData: FileCreateData) => Promise<string>, createImageFile: (fileData: FileCreateData) => Promise<string>, overwriteExisting: boolean) => Promise<string>;

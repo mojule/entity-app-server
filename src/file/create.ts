@@ -9,7 +9,10 @@ import {
 
 import { unzip, ensureParentDirectories, zip } from '@mojule/files'
 
-import { FileCreateData, FileCreateDependencies, CreateDiskFile } from './types'
+import { 
+  FileCreateData, FileCreateDependencies, CreateDiskFile, FileCreateOptions 
+} from './types'
+
 import { processImageFileData } from './process-image'
 
 import { isImageMime } from './is-image-mime'
@@ -27,15 +30,22 @@ export const FileCreateStorageFactory = (
   db: EntityDb<FileEntityMap>,
   diskFileDeps: FileCreateDependencies<FileEntity>,
   imageFileDeps: FileCreateDependencies<ImageFileEntity>,
-  zipFileDeps: FileCreateDependencies<ZipFileEntity>
+  zipFileDeps: FileCreateDependencies<ZipFileEntity>,
+  options: FileCreateOptions = {}
 ) => {
+  const { 
+    isExtractOnly = false, 
+    overwriteExisting = false 
+  } = options
+
   const diskFile = ( fileData: FileCreateData ) =>
     createDiskFile(
       db.collections.file,
       fileData,
       diskFileDeps.getStaticPath,
       diskFileDeps.getRootPath,
-      diskFileDeps.validator || noop
+      diskFileDeps.validator || noop,
+      overwriteExisting
     )
 
   const imageFile = ( fileData: FileCreateData ) =>
@@ -44,7 +54,8 @@ export const FileCreateStorageFactory = (
       fileData,
       imageFileDeps.getStaticPath,
       imageFileDeps.getRootPath,
-      imageFileDeps.validator || noop
+      imageFileDeps.validator || noop,
+      overwriteExisting
     )
 
   const zipFile = async ( fileData: FileCreateData ) => {
@@ -52,7 +63,10 @@ export const FileCreateStorageFactory = (
 
     const {
       destFilePath, uriPath
-    } = getPaths( fileData, zipFileDeps.getStaticPath, zipFileDeps.getRootPath )
+    } = getPaths( 
+      fileData, zipFileDeps.getStaticPath, zipFileDeps.getRootPath, 
+      overwriteExisting 
+    )
 
     let bufferMap: Record<string,Buffer>
     let buffer: Buffer
@@ -95,7 +109,8 @@ export const FileCreateStorageFactory = (
               fileData,
               imageFileDeps.getStaticPath,
               getRootPath,
-              imageFileDeps.validator || noop
+              imageFileDeps.validator || noop,
+              overwriteExisting
             )
 
             const ref: ImageFileRef = {
@@ -115,7 +130,8 @@ export const FileCreateStorageFactory = (
             fileData,
             diskFileDeps.getStaticPath,
             getRootPath,
-            diskFileDeps.validator || noop
+            diskFileDeps.validator || noop,
+            overwriteExisting
           )
 
           const ref: FileRef = {
@@ -141,13 +157,17 @@ export const FileCreateStorageFactory = (
       paths,
       files,
       images,
+      isExtractOnly,
       tags
     }
 
     const id = await db.collections.zipFile.create( zipFile )
 
     await ensureParentDirectories( destFilePath )
-    await writeFile( destFilePath, buffer )
+    
+    if( !isExtractOnly ){
+      await writeFile( destFilePath, buffer )
+    }
 
     return id
   }
@@ -158,10 +178,11 @@ export const FileCreateStorageFactory = (
 const createFileEntity = (
   fileData: FileCreateData,
   staticPath: ( fileData: FileCreateData ) => string,
-  rootPath: ( fileData: FileCreateData ) => string
+  rootPath: ( fileData: FileCreateData ) => string,
+  overwriteExisting: boolean
 ) => {
   const { mimetype, size, tags } = fileData
-  const { uriPath } = getPaths( fileData, staticPath, rootPath )
+  const { uriPath } = getPaths( fileData, staticPath, rootPath, overwriteExisting )
 
   const diskFile: FileEntity = {
     name: uriPath,
@@ -180,7 +201,8 @@ const createDiskFile: CreateDiskFile<FileEntity> = async (
   fileData: FileCreateData,
   staticPath: ( fileData: FileCreateData ) => string,
   rootPath: ( fileData: FileCreateData ) => string,
-  validator: ( entity: FileEntity, buffer: Buffer ) => void
+  validator: ( entity: FileEntity, buffer: Buffer ) => void,
+  overwriteExisting: boolean
 ) => {
   const { buffer } = fileData
 
@@ -188,9 +210,13 @@ const createDiskFile: CreateDiskFile<FileEntity> = async (
     throw Error( `Expected buffer` )
   }
 
-  const { destFilePath } = getPaths( fileData, staticPath, rootPath )
+  const { destFilePath } = getPaths( 
+    fileData, staticPath, rootPath, overwriteExisting 
+  )
 
-  const diskFile = createFileEntity( fileData, staticPath, rootPath )
+  const diskFile = createFileEntity( 
+    fileData, staticPath, rootPath, overwriteExisting 
+  )
 
   validator( diskFile, buffer )
 
@@ -207,13 +233,12 @@ const createImageFile: CreateDiskFile<ImageFileEntity> = async (
   fileData: FileCreateData,
   staticPath: ( fileData: FileCreateData ) => string,
   rootPath: ( fileData: FileCreateData ) => string,
-  validator: ( entity: ImageFileEntity, buffer: Buffer ) => void
+  validator: ( entity: ImageFileEntity, buffer: Buffer ) => void,
+  overwriteExisting: boolean
 ) => {
   const { buffer } = fileData
 
-  if( buffer === undefined  ) {
-    throw Error( `Expected buffer` )
-  }
+  if( buffer === undefined  ) throw Error( `Expected buffer` )
 
   const { imageFile, image } = await processImageFileData( fileData )
 
@@ -221,7 +246,7 @@ const createImageFile: CreateDiskFile<ImageFileEntity> = async (
 
   const {
     destFilePath, uriPath
-  } = getPaths( fileData, staticPath, rootPath )
+  } = getPaths( fileData, staticPath, rootPath, overwriteExisting )
 
   imageFile.meta.path = uriPath
   imageFile.name = uriPath
@@ -246,12 +271,19 @@ const createImageFile: CreateDiskFile<ImageFileEntity> = async (
 const getPaths = (
   fileData: FileCreateData,
   staticPath: ( fileData: FileCreateData ) => string,
-  rootPath: ( fileData: FileCreateData ) => string
+  rootPath: ( fileData: FileCreateData ) => string,
+  overwriteExisting: boolean
 ) => {
   const { originalname } = fileData
 
   const destPath = join( staticPath( fileData ), rootPath( fileData ) )
-  const destName = nextFilename( destPath, originalname )
+  
+  const destName = (
+    overwriteExisting ? 
+    join( destPath, originalname ) : 
+    nextFilename( destPath, originalname )
+  )
+  
   const destFilePath = join( destPath, destName )
   const uriPath = join( '/', rootPath( fileData ), destName )
 

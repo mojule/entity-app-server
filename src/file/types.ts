@@ -24,6 +24,11 @@ export interface GetPaths {
   getRootPath: GetFilePath
 }
 
+export type FileCreateOptions = {
+  isExtractOnly?: boolean
+  overwriteExisting?: boolean
+}
+
 export interface FileCreateDependencies<T extends FileEntity> extends GetPaths {
   validator?: ( entity: T, buffer: Buffer ) => void
 }
@@ -33,7 +38,8 @@ export type CreateDiskFile<T extends FileEntity> = (
   fileData: FileCreateData,
   staticPath: GetFilePath,
   rootPath: GetFilePath,
-  validator: ( entity: T, buffer: Buffer ) => void
+  validator: ( entity: T, buffer: Buffer ) => void,
+  overwriteExisting: boolean
 ) => Promise<string>
 
 export type CreateZipFile = (
@@ -43,5 +49,6 @@ export type CreateZipFile = (
   rootPath: GetFilePath,
   validator: ( entity: ZipFileEntity, buffer: Buffer ) => void,
   createDiskFile: ( fileData: FileCreateData ) => Promise<string>,
-  createImageFile: ( fileData: FileCreateData ) => Promise<string>
+  createImageFile: ( fileData: FileCreateData ) => Promise<string>,
+  overwriteExisting: boolean
 ) => Promise<string>
