@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createSecurityRegisterRoutes = void 0;
 const express = require("express");
-const uuid_1 = require("uuid");
 const entity_app_1 = require("@mojule/entity-app");
 const util_1 = require("@mojule/util");
 const log_iisnode_1 = require("@mojule/log-iisnode");
@@ -27,21 +26,17 @@ const createSecurityRegisterRoutes = async (db, options) => {
                     if (req.isAuthenticated()) {
                         throw Error('User already logged in while registering');
                     }
-                    const { name, email, password } = req.body;
-                    const existingUser = await db.collections.user.find({ email });
-                    if (existingUser.length) {
-                        throw Error(`User with email ${email} already exists`);
-                    }
-                    const roles = [];
-                    const secret = uuid_1.v4();
+                    const { name, password } = req.body;
                     const { isStrong } = entity_app_1.testPassword(password);
                     if (!isStrong) {
                         throw Error('Expected strong password');
                     }
-                    const userEntity = await entity_app_1.createUserEntity({ name, email, roles }, password);
-                    const pendingUser = Object.assign(userEntity, { secret });
-                    await db.collections.pendingUser.create(pendingUser);
-                    await notifyUserVerifyEmail(pendingUser);
+                    const existingUsers = await db.userNames();
+                    if (existingUsers.includes(name)) {
+                        throw Error(`User named ${name} already exists`);
+                    }
+                    const secret = await db.account.createPendingUser({ name, password });
+                    await notifyUserVerifyEmail(name, secret);
                 }
                 catch (err) {
                     log_iisnode_1.log.error(err);

@@ -1,6 +1,8 @@
 import { RequestHandler } from 'express-serve-static-core'
 
-import { ActionType, DbCollection, EntitySchemaDb } from '@mojule/entity-app'
+import { 
+  DbCollection, EntitySchemaDb, SecureDb, SecureDbItem, SecureEntityMap 
+} from '@mojule/entity-app'
 
 import { kebabCase } from '@mojule/util'
 
@@ -9,10 +11,10 @@ import { defaultGetPath, defaultGetResult } from './store-routes'
 import { StoreRouteMeta, StoreRoute, GetPath, GetResult } from './types'
 import { createEntitySchemaRouteHandler } from './schema-routes'
 
-export const getRoute = <TEntityMap>(
+export const getRoute = <TEntityMap extends SecureEntityMap, D extends SecureDbItem>(
   collectionKey: keyof TEntityMap,
-  store: EntitySchemaDb<TEntityMap>,
-  action: keyof DbCollection<TEntityMap>,
+  store: EntitySchemaDb<TEntityMap> & SecureDb<TEntityMap, D>,
+  action: keyof DbCollection<TEntityMap, D>,
   type: ActionType,
   getPath: GetPath = defaultGetPath,
   getResult: GetResult<TEntityMap> = defaultGetResult,

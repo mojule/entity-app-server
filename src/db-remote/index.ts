@@ -1,30 +1,37 @@
-import { DbCollections, eachEntityKeySync, EntityDb, EntityKeys } from '@mojule/entity-app'
+import {
+  DbCollections, DbItem, EntityDb, EntityKeys
+} from '@mojule/entity-app'
+
 import { createCollection } from './create-collection'
 import { DbRemoteReadOptions } from './types'
 
-const initCollections = <TEntityMap>( 
+const initCollections = <TEntityMap, D extends DbItem>(
   keys: EntityKeys<TEntityMap>, options: DbRemoteReadOptions
 ) => {
-  const collections: Partial<DbCollections<TEntityMap>> = {}
+  const collections: DbCollections<TEntityMap, D> = {} as any  
 
-  eachEntityKeySync( keys, key => {
-    collections[ <keyof TEntityMap>key ] =
-      createCollection<TEntityMap, keyof TEntityMap>( key, options )
-  })
+  for (const key in keys ) {
+    const collection = createCollection<TEntityMap, keyof TEntityMap, D>(
+      key, options
+    )
 
-  return collections as DbCollections<TEntityMap>
+    collections[key as keyof TEntityMap] = collection
+  }
+
+  return collections
 }
 
-export const creatRemoteStore = async <TEntityMap>(
-  _name: string, keys: EntityKeys<TEntityMap>, options: DbRemoteReadOptions
+export const creatRemoteStore = async <TEntityMap, D extends DbItem = DbItem>(
+  _name: string, keys: EntityKeys<TEntityMap>, 
+  options: DbRemoteReadOptions
 ) => {
   const drop = async () => { }
 
   const close = async () => { }
 
-  const collections = initCollections( keys, options )
+  const collections = initCollections<TEntityMap,D>(keys, options)
 
-  const db: EntityDb<TEntityMap> = { drop, close, collections }
+  const db: EntityDb<TEntityMap, D> = { drop, close, collections }
 
   return db
 }

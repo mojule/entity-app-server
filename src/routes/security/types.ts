@@ -1,11 +1,9 @@
 import { RequestHandler } from 'express'
 
-import { PendingUserEntity, UserEntity } from '@mojule/entity-app'
-
 export type ForgotPasswordOptions = {
   changePasswordHandlers?: RequestHandler[]
-  notifyUserPasswordReset: ( user: UserEntity, secret: string ) => Promise<void>
-  notifyUserPasswordChange: ( user: UserEntity ) => Promise<void>
+  notifyUserPasswordReset: ( userName: string, secret: string ) => Promise<void>
+  notifyUserPasswordChange: ( userName: string ) => Promise<void>
 }
 
 export type LoginOptions = {
@@ -14,5 +12,5 @@ export type LoginOptions = {
 
 export type RegisterOptions = {
   registerHandlers?: RequestHandler[]
-  notifyUserVerifyEmail: ( pendingUser: PendingUserEntity ) => Promise<void>
+  notifyUserVerifyEmail: ( userName: string, secret: string ) => Promise<void>
 }

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express-serve-static-core'
 
 import { 
-  EntityDb, SecurityEntityMap, UserEntity 
+  SecureDb, SecureEntityMap
 } from '@mojule/entity-app'
 
 import { log } from '@mojule/log-iisnode'
@@ -10,8 +10,8 @@ import { delayPromise } from '@mojule/util'
 import { delayHandler } from '../../delay-handler'
 import { Route } from '../types'
 
-export const createSecurityVerifyRoutes = async <EntityMap extends SecurityEntityMap>(
-  db: EntityDb<EntityMap>
+export const createSecurityVerifyRoutes = async <EntityMap extends SecureEntityMap>(
+  db: SecureDb<EntityMap>
 ) => {
   const verify: Route = {
     method: 'get',
@@ -26,19 +26,7 @@ export const createSecurityVerifyRoutes = async <EntityMap extends SecurityEntit
         try {
           if( !secret ) throw Error( 'Expected secret' )
 
-          const query = { secret }
-          const pendingUser = await db.collections.pendingUser.findOne(query)
-
-          if (pendingUser === undefined) {
-            throw Error(`No pendingUser found for secret ${secret}`)
-          }
-
-          const { name, email, password, roles } = pendingUser
-
-          const userEntity: UserEntity = { name, email, password, roles }
-
-          await db.collections.user.create(userEntity)
-          await db.collections.pendingUser.remove(pendingUser._id)
+          await db.account.verifyPendingUser( secret )
         } catch (err) {
           log.error(err)
         }

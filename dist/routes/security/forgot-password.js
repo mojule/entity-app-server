@@ -1,9 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createSecurityForgotRoutes = void 0;
-const bcrypt = require("bcryptjs");
 const express = require("express");
-const uuid_1 = require("uuid");
 const log_iisnode_1 = require("@mojule/log-iisnode");
 const util_1 = require("@mojule/util");
 const delay_handler_1 = require("../../delay-handler");
@@ -11,7 +9,6 @@ const entity_app_1 = require("@mojule/entity-app");
 const postHandler = express.urlencoded({ extended: false });
 const createSecurityForgotRoutes = async (db, options) => {
     const { changePasswordHandlers = [], notifyUserPasswordChange, notifyUserPasswordReset } = options;
-    // routes - forgot - post email, reset - post new password
     const forgotPassword = {
         method: 'post',
         path: 'forgot-password',
@@ -22,20 +19,11 @@ const createSecurityForgotRoutes = async (db, options) => {
             async (req, res) => {
                 const start = Date.now();
                 try {
-                    const { email } = req.body;
-                    if (!email)
-                        throw Error('Expected email');
-                    const user = await db.collections.user.findOne({ email });
-                    if (!user)
-                        throw Error(`No user found for ${email}`);
-                    const secret = uuid_1.v4();
-                    const resetPassword = {
-                        name: `Reset password for ${user.name}`,
-                        secret,
-                        user: { _collection: 'user', _id: user._id }
-                    };
-                    await db.collections.resetPassword.create(resetPassword);
-                    await notifyUserPasswordReset(user, secret);
+                    const { name } = req.body;
+                    if (!name)
+                        throw Error('Expected name');
+                    const secret = await db.account.forgotPassword(name);
+                    await notifyUserPasswordReset(name, secret);
                 }
                 catch (err) {
                     log_iisnode_1.log.error(err);
@@ -65,21 +53,15 @@ const createSecurityForgotRoutes = async (db, options) => {
                 try {
                     if (!secret)
                         throw Error('Expected secret');
-                    const query = { secret };
-                    const reset = await db.collections.resetPassword.findOne(query);
-                    if (!reset)
-                        throw Error(`Expected resetPassword for ${secret}`);
-                    const { _id } = reset.user;
-                    const user = await db.collections.user.load(_id);
-                    await loginUser(req, user);
-                    db.collections.resetPassword.remove(reset._id);
+                    const userName = await db.account.userForSecret(secret, 'forgot-password');
+                    await loginUser(req, { name: userName });
                 }
                 catch (err) {
                     log_iisnode_1.log.error(err);
                 }
                 const elapsed = Date.now() - start;
                 await util_1.delayPromise(250 - elapsed);
-                res.redirect('/change-password');
+                res.redirect(`/change-password?secret=${secret}`);
             }
         ]
     };
@@ -93,8 +75,10 @@ const createSecurityForgotRoutes = async (db, options) => {
             ...changePasswordHandlers,
             async (req, res) => {
                 const start = Date.now();
-                let { password } = req.body;
+                let { secret, password } = req.body;
                 try {
+                    if (!secret)
+                        throw Error('Expected secret');
                     if (!password)
                         throw Error('Expected password');
                     const { isStrong } = entity_app_1.testPassword(password);
@@ -103,16 +87,12 @@ const createSecurityForgotRoutes = async (db, options) => {
                     }
                     if (!req.isAuthenticated())
                         throw Error('Expected logged in user');
+                    await db.account.resetPassword(secret, password);
                     const { user: reqUser } = req;
                     if (!reqUser)
                         throw Error('Expected req.user');
-                    const id = reqUser['_id'];
-                    if (typeof id !== 'string')
-                        throw Error('Expected user._id');
-                    const user = await db.collections.user.load(id);
-                    user.password = await bcrypt.hash(password, 10);
-                    await db.collections.user.save(user);
-                    await notifyUserPasswordChange(user);
+                    const name = reqUser['name'];
+                    await notifyUserPasswordChange(name);
                 }
                 catch (err) {
                     log_iisnode_1.log.error(err);

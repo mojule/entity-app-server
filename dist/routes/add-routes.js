@@ -1,15 +1,19 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.addRoutes = void 0;
-const roles_handler_1 = require("../security/roles-handler");
-const addRoutes = (app, passport, routes, log) => {
+const mode_1 = require("@mojule/mode");
+const create_route_access_1 = require("./create-route-access");
+const addRoutes = (app, passport, routes, isUserInGroup, log) => {
     routes.forEach(route => {
-        const { method, path, handlers, roles } = route;
+        const { method, path, handlers, access } = route;
         let allHandlers = handlers;
-        if (roles.length > 0) {
+        if (access.require) {
+            const r = mode_1.hasRequestBit(access.require, 'r') ? 'r' : '-';
+            const w = mode_1.hasRequestBit(access.require, 'w') ? 'w' : '-';
+            const x = mode_1.hasRequestBit(access.require, 'x') ? 'x' : '-';
             allHandlers = [
                 (req, _res, next) => {
-                    log.info(`${req.path} requires roles`, roles);
+                    log.info(`${req.path} requires access`, [r, w, x].join(''));
                     next();
                 },
                 passport.authenticate('basic', { session: false }),
@@ -17,7 +21,7 @@ const addRoutes = (app, passport, routes, log) => {
                     log.info('Post basic authentication, isAuthenticated', req.isAuthenticated());
                     next();
                 },
-                roles_handler_1.createRolesHandler(roles),
+                create_route_access_1.createRouteAccessHandler(route.access, isUserInGroup),
                 ...handlers
             ];
         }

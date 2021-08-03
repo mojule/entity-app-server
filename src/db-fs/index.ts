@@ -1,5 +1,5 @@
 import { 
-  DbCollections, defaultDrop, eachEntityKey, EntityDb, EntityKeys 
+  CreateDbItem, DbCollections, DbItem, defaultDrop, EntityDb, EntityKeys 
 } from '@mojule/entity-app'
 
 import { kebabCase } from '@mojule/util'
@@ -19,24 +19,28 @@ const mkdirSafe = async ( path: string, options?: MakeDirectoryOptions ) => {
   }
 }
 
-const initCollections = async <TEntityMap>(
-  path: string, keys: EntityKeys<TEntityMap>, formatJson = false
+const initCollections = async <TEntityMap, D extends DbItem>(
+  path: string, keys: EntityKeys<TEntityMap>, createDbItem: CreateDbItem<D>,
+  formatJson = false
 ) => {
-  const collections: DbCollections<TEntityMap> = <any>{}
+  const collections: DbCollections<TEntityMap, D> = <any>{}
 
-  await eachEntityKey( keys, async key => {
+  for( const key in keys ){
     const collectionPath = posix.join( path, key )
 
     await mkdirSafe( collectionPath )
 
-    collections[ key ] = createCollection( collectionPath, formatJson )
-  } )
+    collections[ key ] = createCollection( 
+      collectionPath, createDbItem, formatJson 
+    )
+  }
 
   return collections
 }
 
-export const createFsDb = async <TEntityMap>(
+export const createFsDb = async <TEntityMap, D extends DbItem>(
   name: string, keys: EntityKeys<TEntityMap>,
+  createDbItem: CreateDbItem<D>,
   { dataPath, formatJson }: FsOptions = { dataPath: './data/fs' }
 ) => {
   name = kebabCase( name )
@@ -48,9 +52,11 @@ export const createFsDb = async <TEntityMap>(
   const drop = async () => defaultDrop( db )()
   const close = async () => { }
 
-  const collections = await initCollections( path, keys, formatJson )
+  const collections = await initCollections( 
+    path, keys, createDbItem, formatJson 
+  )
 
-  const db: EntityDb<TEntityMap> = { drop, close, collections }
+  const db: EntityDb<TEntityMap, D> = { drop, close, collections }
 
   return db
 }

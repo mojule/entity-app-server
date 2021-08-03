@@ -3,7 +3,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createSecurity = void 0;
 const bcrypt = require("bcryptjs");
 const uuid_1 = require("uuid");
-const entity_app_1 = require("@mojule/entity-app");
 const createSecurity = (store, log) => {
     const strategy = (email, password, done) => {
         log.info('Password strategy');
@@ -39,7 +38,7 @@ const createSecurity = (store, log) => {
         store.collections.user.load(_id)
             .then(user => {
             const { name, email, roles } = user;
-            user.roles.push(entity_app_1.Roles.currentUser);
+            user.roles.push(Roles.currentUser);
             cb(null, { _id, name, email, roles });
         })
             .catch(err => {

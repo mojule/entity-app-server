@@ -2,15 +2,23 @@ import { RequestHandler, Application } from 'express'
 import { Request } from 'express-serve-static-core'
 
 import { 
-  ActionType, DbCollection, EntitySchemaDb, Role 
+  DbCollection, EntitySchemaDb
 } from '@mojule/entity-app'
 
 export interface Route<TMeta = any> {
   method: Method
   path: string
   handlers: RequestHandler[]
+  access: RouteAccess
   meta?: TMeta
-  roles: Role[]
+}
+
+export type RouteAccess = {
+  owner: string
+  group: string
+  permissions: number
+  require: number
+  isDirectory: boolean
 }
 
 export interface CollectionRouteMeta<TEntityMap> {
@@ -43,7 +51,6 @@ export interface GetResult<TEntityMap,TResult = any> {
     collectionKey: keyof TEntityMap,
     store: EntitySchemaDb<TEntityMap>,
     action: keyof DbCollection<TEntityMap>,
-    type: ActionType,
     req: Request,
     omitId?: boolean
   ): Promise<TResult>

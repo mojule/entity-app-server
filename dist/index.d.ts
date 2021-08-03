@@ -24,6 +24,5 @@ export * from './routes/store-routes';
 export * from './routes/types';
 export * from './routes/website-routes';
 export * from './security';
-export * from './security/roles-handler';
 export * from './ajv-validator';
 export * from './delay-handler';

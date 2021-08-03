@@ -1,6 +1,6 @@
-import { 
-  DbCollection, DbCreate, DbCreateMany, DbFind, DbFindOne, DbIds, DbLoad, 
-  DbLoadMany, DbLoadPaged, DbRemove, DbRemoveMany, DbSave, DbSaveMany
+import {
+  DbCollection, DbCreate, DbCreateMany, DbFind, DbFindOne, DbIds, DbItem, 
+  DbLoad, DbLoadMany, DbLoadPaged, DbRemove, DbRemoveMany, DbSave, DbSaveMany
 } from '@mojule/entity-app'
 
 import { kebabCase, objToError } from '@mojule/util'
@@ -8,117 +8,119 @@ import { kebabCase, objToError } from '@mojule/util'
 import fetch, { Response, RequestInit } from 'node-fetch'
 import { DbRemoteReadOptions } from './types'
 
-const handleResponse = async ( res: Response ) => {
+const handleResponse = async (res: Response) => {
   const textResult = await res.text()
 
   // was OK but didn't return a body
-  if( res.ok && textResult.trim() === '' ) return
+  if (res.ok && textResult.trim() === '') return
 
-  const result = JSON.parse( textResult )
+  const result = JSON.parse(textResult)
 
-  if ( res.ok ) return result
+  if (res.ok) return result
 
-  const err = objToError( result )
+  const err = objToError(result)
 
   throw err
 }
 
-export const createCollection = <TEntityMap,K extends keyof TEntityMap>(
+export const createCollection = <TEntityMap, K extends keyof TEntityMap, D extends DbItem>(
   key: K, options: DbRemoteReadOptions
 ) => {
+  type Entity = TEntityMap[K]
+
   const { uri, auth } = options
 
-  const apiGet = async <TEntityMap, K extends keyof TEntityMap>(
-    key: K, action: keyof DbCollection<TEntityMap[K]>, ...args: any[]
+  const apiGet = async (
+    key: K, action: keyof DbCollection<Entity>, ...args: any[]
   ) => {
-    const path = getPath<TEntityMap,K>( key, action, args )
-  
-    const response = await fetch( path )
-  
-    return handleResponse( response )
+    const path = getPath(key, action, args)
+
+    const response = await fetch(path)
+
+    return handleResponse(response)
   }
-  
-  const getPath = <TEntityMap, K extends keyof TEntityMap>(
-    key: K, action: keyof DbCollection<TEntityMap[ K ]>,
+
+  const getPath = (
+    key: K, action: keyof DbCollection<Entity>,
     ...args: any[]
   ) => {
-    const keySlug = kebabCase( String( key ) )
-    const actionSlug = kebabCase( action )
-  
-    const argSlugs = args.map( arg => String( arg ) )
-  
-    const getPath = [ uri, keySlug, actionSlug, ...argSlugs ].join( '/' )
-  
+    const keySlug = kebabCase(String(key))
+    const actionSlug = kebabCase(action)
+
+    const argSlugs = args.map(arg => String(arg))
+
+    const getPath = [uri, keySlug, actionSlug, ...argSlugs].join('/')
+
     return getPath
   }
-  
-  const apiPost = async <TEntityMap, K extends keyof TEntityMap>(
-    key: K, action: keyof DbCollection<TEntityMap[ K ]>, arg: any, id?: string
+
+  const apiPost = async (
+    key: K, action: keyof DbCollection<Entity>, arg: any, id?: string
   ) => {
-    const json = JSON.stringify( arg )
-  
-    let path = `${ uri }/${ kebabCase( String( key ) ) }/${ kebabCase( action ) }`
-  
-    if ( id ) {
-      path += `/${ id }`
+    const json = JSON.stringify(arg)
+
+    let path = `${uri}/${kebabCase(String(key))}/${kebabCase(action)}`
+
+    if (id) {
+      path += `/${id}`
     }
-  
-    const headers: RequestInit[ 'headers' ] = {
-      'Content-Type': 'application/json'    
+
+    const headers: RequestInit['headers'] = {
+      'Content-Type': 'application/json'
     }
-  
+
     const options: RequestInit = {
       method: 'POST',
       headers,
       body: json
     }
-  
-    if( auth ){
+
+    if (auth) {
       headers.Authorization = auth
     }
-  
-    const response = await fetch( path, options )
-  
-    return handleResponse( response )
+
+    const response = await fetch(path, options)
+
+    return handleResponse(response)
   }
 
-  const ids: DbIds = async () => apiGet<TEntityMap,K>( key, 'ids' )
+  const ids: DbIds = async () => apiGet(key, 'ids')
 
-  const create: DbCreate<TEntityMap[ K ]> = async entity =>
-    apiPost<TEntityMap, K>( key, 'create', entity )
+  const create: DbCreate<Entity> = async entity =>
+    apiPost(key, 'create', entity)
 
-  const createMany: DbCreateMany<TEntityMap[ K ]> = async entities =>
-    apiPost<TEntityMap, K>( key, 'createMany', entities )
+  const createMany: DbCreateMany<Entity> = async entities =>
+    apiPost(key, 'createMany', entities)
 
-  const load: DbLoad<TEntityMap[ K ]> = async id =>
-    apiGet<TEntityMap,K>( key, 'load', id )
+  const load: DbLoad<Entity, D> = async id =>
+    apiGet(key, 'load', id)
 
-  const loadMany: DbLoadMany<TEntityMap[ K ]> = async ids =>
-    apiPost<TEntityMap,K>( key, 'loadMany', ids )
+  const loadMany: DbLoadMany<Entity, D> = async ids =>
+    apiPost(key, 'loadMany', ids)
 
-  const save: DbSave<TEntityMap[ K ]> = async document =>
-    apiPost<TEntityMap,K>( key, 'save', document )
+  const save: DbSave<Entity> = async document =>
+    apiPost(key, 'save', document)
 
-  const saveMany: DbSaveMany<TEntityMap[ K ]> = async documents =>
-    apiPost<TEntityMap,K>( key, 'saveMany', documents )
+  const saveMany: DbSaveMany<Entity> = async documents =>
+    apiPost(key, 'saveMany', documents)
 
-  const remove: DbRemove = async id => apiGet<TEntityMap,K>( key, 'remove', id )
+  const remove: DbRemove = async id => apiGet(key, 'remove', id)
 
   const removeMany: DbRemoveMany = async ids =>
-    apiPost<TEntityMap,K>( key, 'removeMany', ids )
+    apiPost(key, 'removeMany', ids)
 
-  const find: DbFind<TEntityMap[ K ]> = async criteria =>
-    apiPost<TEntityMap, K>( key, 'find', criteria )
+  const find: DbFind<Entity, D> = async criteria =>
+    apiPost(key, 'find', criteria)
 
-  const findOne: DbFindOne<TEntityMap[ K ]> = async criteria =>
-    apiPost<TEntityMap, K>( key, 'findOne', criteria )
+  const findOne: DbFindOne<Entity, D> = async criteria =>
+    apiPost(key, 'findOne', criteria)
 
-  const loadPaged: DbLoadPaged<TEntityMap[ K ]> = async (
+  const loadPaged: DbLoadPaged<Entity, D> = async (
     pageSize: number, pageIndex = 0
   ) =>
-    apiGet<TEntityMap,K>( key, 'loadPaged', pageSize, pageIndex )
+    apiGet(key, 'loadPaged', pageSize, pageIndex)
 
-  const entityCollection: DbCollection<TEntityMap[ K ]> = {
+  const entityCollection: DbCollection<Entity,D> = {
     ids, create, createMany, load, loadMany, save, saveMany, remove, removeMany,
     find, findOne, loadPaged
   }

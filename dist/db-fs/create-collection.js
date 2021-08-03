@@ -3,9 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createCollection = void 0;
 const fs_1 = require("fs");
 const entity_app_1 = require("@mojule/entity-app");
-const util_1 = require("@mojule/util");
 const { readFile, writeFile, readdir, unlink, stat } = fs_1.promises;
-const createCollection = (path, formatJson) => {
+const createCollection = (path, createDbItem, formatJson) => {
     const stringify = (formatJson ?
         (value) => JSON.stringify(value, null, 2) :
         (value) => JSON.stringify(value));
@@ -17,11 +16,11 @@ const createCollection = (path, formatJson) => {
         return fileIds;
     };
     const create = async (entity) => {
-        const _id = util_1.randId();
-        const dbEntity = Object.assign({ _id }, entity);
+        const dbItem = createDbItem();
+        const dbEntity = Object.assign(entity, dbItem);
         const json = stringify(dbEntity);
-        await writeFile(filePath(_id), json, 'utf8');
-        return _id;
+        await writeFile(filePath(dbItem._id), json, 'utf8');
+        return dbItem._id;
     };
     const createMany = entity_app_1.defaultCreateMany(create);
     const load = async (id) => {

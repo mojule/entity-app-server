@@ -1,6 +1,6 @@
 import { Request } from 'express-serve-static-core';
 import { Logger } from '@mojule/log-formatter/src/types';
-import { DbItem, EntityDb, SecurityEntityMap, UserData, UserEntity } from '@mojule/entity-app';
+import { DbItem, EntityDb, SecurityEntityMap } from '@mojule/entity-app';
 export declare const createSecurity: (store: EntityDb<SecurityEntityMap>, log: Logger) => {
     strategy: (email: string, password: string, done: any) => void;
     serializeUser: (user: UserEntity & DbItem, cb: any) => void;

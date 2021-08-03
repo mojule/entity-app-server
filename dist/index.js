@@ -36,7 +36,6 @@ __exportStar(require("./routes/store-routes"), exports);
 __exportStar(require("./routes/types"), exports);
 __exportStar(require("./routes/website-routes"), exports);
 __exportStar(require("./security"), exports);
-__exportStar(require("./security/roles-handler"), exports);
 __exportStar(require("./ajv-validator"), exports);
 __exportStar(require("./delay-handler"), exports);
 //# sourceMappingURL=index.js.map

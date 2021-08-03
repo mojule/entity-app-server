@@ -1,12 +1,7 @@
 import * as express from 'express'
 import { Request, Response } from 'express-serve-static-core'
 
-import { v4 } from 'uuid'
-
-import { 
-  createUserEntity, EntityDb, PendingUserEntity, Role, SecurityEntityMap, 
-  testPassword 
-} from '@mojule/entity-app'
+import { SecureDb, SecureEntityMap, testPassword } from '@mojule/entity-app'
 
 import { delayPromise } from '@mojule/util'
 import { log } from '@mojule/log-iisnode'
@@ -17,8 +12,8 @@ import { Route } from '../types'
 
 const postHandler = express.urlencoded( { extended: false } )
 
-export const createSecurityRegisterRoutes = async <EntityMap extends SecurityEntityMap>( 
-  db: EntityDb<EntityMap>,
+export const createSecurityRegisterRoutes = async <EntityMap extends SecureEntityMap>(
+  db: SecureDb<EntityMap>,
   options: RegisterOptions
 ) => {
   const { 
@@ -45,16 +40,7 @@ export const createSecurityRegisterRoutes = async <EntityMap extends SecurityEnt
             throw Error( 'User already logged in while registering' )
           }
 
-          const { name, email, password } = req.body
-
-          const existingUser = await db.collections.user.find({ email })
-
-          if( existingUser.length ){
-            throw Error( `User with email ${ email } already exists`)
-          }
-
-          const roles: Role[] = []
-          const secret = v4()
+          const { name, password } = req.body
 
           const { isStrong } = testPassword( password )
 
@@ -62,17 +48,15 @@ export const createSecurityRegisterRoutes = async <EntityMap extends SecurityEnt
             throw Error( 'Expected strong password' )
           }
 
-          const userEntity = await createUserEntity(
-            { name, email, roles }, password 
-          )        
+          const existingUsers = await db.userNames()
 
-          const pendingUser: PendingUserEntity = Object.assign(
-            userEntity, { secret }
-          )
+          if( existingUsers.includes( name ) ){
+            throw Error( `User named ${ name } already exists`)
+          }
 
-          await db.collections.pendingUser.create( pendingUser )
+          const secret = await db.account.createPendingUser( { name, password })
 
-          await notifyUserVerifyEmail( pendingUser )
+          await notifyUserVerifyEmail( name, secret )
         } catch( err ){
           log.error( err )         
         }

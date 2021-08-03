@@ -1,2 +1,2 @@
-import { DbCollection } from '@mojule/entity-app';
-export declare const createCollection: <TEntity>(path: string, formatJson: boolean) => DbCollection<TEntity, import("@mojule/entity-app").DbItem>;
+import { CreateDbItem, DbCollection, DbItem } from '@mojule/entity-app';
+export declare const createCollection: <TEntity, D extends DbItem>(path: string, createDbItem: CreateDbItem<D>, formatJson: boolean) => DbCollection<TEntity, D>;

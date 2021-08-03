@@ -17,15 +17,7 @@ const createSecurityVerifyRoutes = async (db) => {
                 try {
                     if (!secret)
                         throw Error('Expected secret');
-                    const query = { secret };
-                    const pendingUser = await db.collections.pendingUser.findOne(query);
-                    if (pendingUser === undefined) {
-                        throw Error(`No pendingUser found for secret ${secret}`);
-                    }
-                    const { name, email, password, roles } = pendingUser;
-                    const userEntity = { name, email, password, roles };
-                    await db.collections.user.create(userEntity);
-                    await db.collections.pendingUser.remove(pendingUser._id);
+                    await db.account.verifyPendingUser(secret);
                 }
                 catch (err) {
                     log_iisnode_1.log.error(err);

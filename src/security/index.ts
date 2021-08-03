@@ -5,7 +5,7 @@ import { v4 } from 'uuid'
 import { Logger } from '@mojule/log-formatter/src/types'
 
 import { 
-  ApiKeyEntity, DbItem, EntityDb, Roles, SecurityEntityMap, UserData, UserEntity 
+  ApiKeyEntity, DbItem, EntityDb, SecurityEntityMap
 } from '@mojule/entity-app'
 
 export const createSecurity = (store: EntityDb<SecurityEntityMap>, log: Logger) => {
