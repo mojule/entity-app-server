@@ -16,7 +16,6 @@ export const createSecurityVerifyRoutes = async <EntityMap extends SecureEntityM
   const verify: Route = {
     method: 'get',
     path: 'verify/:secret',
-    roles: [],
     handlers: [
       delayHandler,
       async (req: Request, res: Response) => {

@@ -6,14 +6,12 @@ import { kebabCase } from '@mojule/util'
 import { errorHandler } from './error-handler'
 import { defaultPostPath, defaultPostResult } from './store-routes'
 import { StoreRoute, StoreRouteMeta, GetPath, GetResult } from './types'
-import { createEntitySchemaRouteHandler } from './schema-routes'
-import { ActionType, DbCollection, EntitySchemaDb } from '@mojule/entity-app'
+import { DbCollection, EntitySchemaDb } from '@mojule/entity-app'
 
-export const postRoute = <TEntityMap>(
+export const postStoreRoute = <TEntityMap>(
   collectionKey: keyof TEntityMap,
   store: EntitySchemaDb<TEntityMap>,
   action: keyof DbCollection<TEntityMap>,
-  type: ActionType,
   getPath: GetPath = defaultPostPath,
   getResult: GetResult<TEntityMap> = defaultPostResult,
 ) => {
@@ -22,13 +20,9 @@ export const postRoute = <TEntityMap>(
   const actionSlug = kebabCase( String( action ) )
   const path = getPath( collectionSlug, actionSlug )
 
-  const schemaHandler = createEntitySchemaRouteHandler(
-    store, collectionKey, type
-  )
-
   const handler: RequestHandler = async ( req, res ) => {
     try {
-      const result = await getResult( collectionKey, store, action, type, req )
+      const result = await getResult( collectionKey, store, action, req )
 
       res.json( result )
     } catch ( err ) {
@@ -36,14 +30,14 @@ export const postRoute = <TEntityMap>(
     }
   }
 
-  const handlers = [ schemaHandler, express.json(), handler ]
+  const handlers = [ express.json(), handler ]
 
   const meta: StoreRouteMeta<TEntityMap> = {
     collectionKey, action
   }
 
   const route: StoreRoute<TEntityMap> = {
-    method, path, handlers, meta, roles: [ 'admin' ]
+    method, path, handlers, meta
   }
 
   return route

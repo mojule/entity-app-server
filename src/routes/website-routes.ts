@@ -132,8 +132,19 @@ export const createWebsiteRoute = async (
     method: 'get',
     path: '*',
     handlers: [ handler ],
-    // TODO how to override for EG /admin
-    roles: []
+    /*
+      TODO 
+        how to override per path for EG /admin - maybe put access on the dom 
+        model and add extra code above once dom model read?
+    */
+    // 
+    access: {
+      isDirectory: false,
+      owner: 'root',
+      group: 'root',
+      permissions: 'rwxrwxr--',
+      require: 'r--'
+    }
   }
 
   return route

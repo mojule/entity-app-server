@@ -10,9 +10,12 @@ const createRouteAccessHandler = (access, isUserInGroup) => {
             isRoot: await isUserInGroup(name, 'root'),
             isOwner: name === access.owner,
             isGroup: await isUserInGroup(name, access.group),
-            permissions: access.permissions
+            permissions: mode_1.parseSymbolicNotation(access.permissions)
         };
-        if (mode_1.canAccess(access.require, options)) {
+        // is there a method for this already?
+        const accessKeys = access.require.split('').filter(s => s !== '-');
+        const request = accessKeys.reduce((req, key) => req | mode_1.accessMasks[key], 0);
+        if (mode_1.canAccess(request, options)) {
             return next();
         }
         next(Error('Eperm'));

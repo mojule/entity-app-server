@@ -5,48 +5,45 @@ import { v4 } from 'uuid'
 import { Logger } from '@mojule/log-formatter/src/types'
 
 import { 
-  ApiKeyEntity, DbItem, EntityDb, SecurityEntityMap
+  ApiKeyEntity, DbItem, LoginUser, SecureDb, SecureEntityMap
 } from '@mojule/entity-app'
+import passport, { PassportStatic } from 'passport'
 
-export const createSecurity = (store: EntityDb<SecurityEntityMap>, log: Logger) => {
-  const strategy = (email: string, password: string, done) => {
-    log.info( 'Password strategy' )
+type Login = (user?: LoginUser) => Promise<SecureDb<SecureEntityMap>>
 
-    store.collections.user.findOne({ email })
-      .then(user => {
-        if (user === undefined) {
-          log.info(`No User for email ${email}`)
+export const createSecurity = (login: Login, log: Logger) => {
+  const userDbs = new Map<string,SecureDb<SecureEntityMap>>()
 
-          return done(null, false)
-        }
+  const strategyPromise = async ( name: string, password: string ) => {
+    try {
+      const isNobody = name === 'nobody'
 
-        //console.log('User', Object.assign({}, user, { password: '<secret>' }))
+      const db = isNobody ? await login() : await login( { name, password } )
 
-        bcrypt.compare(password, user.password, (err, result) => {
-          if (err) {
-            log.warn('Error while comparing password')
-            log.error(err)
+      userDbs.set( name, db )
 
-            return done(err)
-          }
-
-          if (!result) {
-            log.warn('Invalid password attempt')
-
-            return done(null, false)
-          }
-
-          return done(null, user)
-        })
-      })
-      .catch(err => {
-        log.error( err )
-        done(err)
-      })
+      return { name, db }
+    } catch( err ){
+      return err as Error
+    }
   }
 
-  const serializeUser = (user: UserEntity & DbItem, cb) => {
-    cb(null, user._id)
+  const strategy = (name = 'nobody', password = '', done) => {
+    log.info( 'Password strategy' )
+
+    strategyPromise( name, password ).then(
+      errOrName => {
+        if( typeof errOrName === 'string' ){
+          return done( null, errOrName )
+        }
+
+        return done( errOrName )
+      }
+    )
+  }
+
+  const serializeUser = (userName: string, cb) => {
+    cb(null, userName)
   }
 
   const deserializeUser = (

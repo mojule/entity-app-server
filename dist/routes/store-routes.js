@@ -5,67 +5,56 @@ const entity_app_1 = require("@mojule/entity-app");
 const util_1 = require("@mojule/util");
 const post_route_1 = require("./post-route");
 const get_route_1 = require("./get-route");
-const createStoreRoutes = (store, keys, apiPrefix = '/api/v1/', readOnly = false) => {
+const createStoreRoutes = (store, keys, apiPrefix = '/api/v1/') => {
     const routes = [];
     entity_app_1.eachEntityKeySync(keys, key => {
-        const collectionRoutes = exports.createCollectionRoutes(key, store, readOnly);
+        const collectionRoutes = exports.createCollectionRoutes(key, store);
         routes.push(...collectionRoutes);
     });
     routes.forEach(route => route.path = `${apiPrefix}${route.path}`);
     return routes;
 };
 exports.createStoreRoutes = createStoreRoutes;
-const createCollectionRoutes = (collectionKey, store, readOnly) => {
+const createCollectionRoutes = (collectionKey, store) => {
     const storeRouteData = {
         ids: {
             method: 'get',
-            omitId: true,
-            type: 'read'
+            omitId: true
         },
         create: {
-            method: 'post',
-            type: 'create'
+            method: 'post'
         },
         createMany: {
-            method: 'post',
-            type: 'create'
+            method: 'post'
         },
         load: {
-            method: 'get',
-            type: 'read'
+            method: 'get'
         },
         loadMany: {
-            method: 'post',
-            type: 'read'
+            method: 'post'
         },
         save: {
-            method: 'post',
-            type: 'update'
+            method: 'post'
         },
         saveMany: {
-            method: 'post',
-            type: 'update'
+            method: 'post'
         },
         remove: {
-            method: 'get',
-            type: 'delete'
+            method: 'get'
         },
         removeMany: {
-            method: 'post',
-            type: 'delete'
+            method: 'post'
         },
         find: {
-            method: 'post',
-            type: 'read'
+            method: 'post'
         },
         findOne: {
-            method: 'post',
-            type: 'read'
+            method: 'post'
         },
         loadPaged: {
             method: 'get',
             getPath: (collectionSlug, actionSlug) => `${collectionSlug}/${actionSlug}/:pageSize/:pageIndex?`,
-            getResult: async (collectionKey, store, action, type, req) => {
+            getResult: async (collectionKey, store, action, req) => {
                 const collection = store.collections[collectionKey];
                 const exec = collection[action];
                 const pageSize = Number(req.params.pageSize);
@@ -73,20 +62,17 @@ const createCollectionRoutes = (collectionKey, store, readOnly) => {
                     Number(req.params.pageIndex) : 0);
                 const result = await exec(pageSize, pageIndex);
                 return handleResolve(result, store, req);
-            },
-            type: 'read'
+            }
         }
     };
     const routes = [];
     util_1.eachKeyValueMap(storeRouteData, (config, action) => {
         if (config === undefined)
             throw Error(`The route config at ${action} was undefined`);
-        const { getPath, getResult, type } = config;
-        if (readOnly && type !== 'read')
-            return;
+        const { getPath, getResult } = config;
         const route = (config.method === 'post' ?
-            post_route_1.postRoute(collectionKey, store, action, type, getPath, getResult) :
-            get_route_1.getRoute(collectionKey, store, action, type, getPath, getResult, config.omitId));
+            post_route_1.postStoreRoute(collectionKey, store, action, getPath, getResult) :
+            get_route_1.getStoreRoute(collectionKey, store, action, getPath, getResult, config.omitId));
         routes.push(route);
     });
     return routes;
@@ -94,7 +80,7 @@ const createCollectionRoutes = (collectionKey, store, readOnly) => {
 exports.createCollectionRoutes = createCollectionRoutes;
 const defaultGetPath = (collectionSlug, actionSlug, omitId) => `${collectionSlug}/${actionSlug}${omitId ? '' : '/:id'}`;
 exports.defaultGetPath = defaultGetPath;
-const defaultGetResult = async (collectionKey, store, action, type, req, omitId) => {
+const defaultGetResult = async (collectionKey, store, action, req, omitId) => {
     const collection = store.collections[collectionKey];
     const exec = collection[action];
     const result = (omitId ?
@@ -103,7 +89,7 @@ const defaultGetResult = async (collectionKey, store, action, type, req, omitId)
     return handleResolve(result, store, req);
 };
 exports.defaultGetResult = defaultGetResult;
-const defaultPostResult = async (collectionKey, store, action, type, req) => {
+const defaultPostResult = async (collectionKey, store, action, req) => {
     const arg = req.body;
     const collection = store.collections[collectionKey];
     const result = await collection[action](arg);

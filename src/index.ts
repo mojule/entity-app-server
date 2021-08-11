@@ -1,4 +1,3 @@
-export * from './db-fs'
 export * from './db-remote'
 
 export * from './dom'

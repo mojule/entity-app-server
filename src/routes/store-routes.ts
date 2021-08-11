@@ -1,26 +1,25 @@
 import { Request } from 'express-serve-static-core'
 
 import { 
-  ActionType, DbCollection, DbIds, DbItem, eachEntityKeySync, EntityDb, 
+  DbCollection, DbIds, DbItem, eachEntityKeySync, EntityDb, 
   EntityKeys, EntitySchemaDb, resolveRefsDeep, resolveRefsShallow 
 } from '@mojule/entity-app'
 
 import { KeyValueMap, eachKeyValueMap } from '@mojule/util'
 
-import { postRoute } from './post-route'
-import { getRoute } from './get-route'
+import { postStoreRoute } from './post-route'
+import { getStoreRoute } from './get-route'
 import { Method, StoreRoute, GetPath, GetResult } from './types'
 
 export const createStoreRoutes = <TEntityMap>(
   store: EntitySchemaDb<TEntityMap>,
   keys: EntityKeys<TEntityMap>,
-  apiPrefix = '/api/v1/',
-  readOnly = false
+  apiPrefix = '/api/v1/'
 ) => {
   const routes: StoreRoute<TEntityMap>[] = []
 
   eachEntityKeySync( keys, key => {
-    const collectionRoutes = createCollectionRoutes( key, store, readOnly )
+    const collectionRoutes = createCollectionRoutes( key, store )
 
     routes.push( ...collectionRoutes )
   } )
@@ -32,61 +31,49 @@ export const createStoreRoutes = <TEntityMap>(
 
 export const createCollectionRoutes = <TEntityMap>(
   collectionKey: keyof TEntityMap,
-  store: EntitySchemaDb<TEntityMap>,
-  readOnly: boolean
+  store: EntitySchemaDb<TEntityMap>
 ) => {
   const storeRouteData: KeyValueMap<DbCollection<TEntityMap>, RouteConfig<TEntityMap>> = {
     ids: {
       method: 'get',
-      omitId: true,
-      type: 'read'
+      omitId: true
     },
     create: {
-      method: 'post',
-      type: 'create'
+      method: 'post'
     },
     createMany: {
-      method: 'post',
-      type: 'create'
+      method: 'post'
     },
     load: {
-      method: 'get',
-      type: 'read'
+      method: 'get'
     },
     loadMany: {
-      method: 'post',
-      type: 'read'
+      method: 'post'
     },
     save: {
-      method: 'post',
-      type: 'update'
+      method: 'post'
     },
     saveMany: {
-      method: 'post',
-      type: 'update'
+      method: 'post'
     },
     remove: {
-      method: 'get',
-      type: 'delete'
+      method: 'get'
     },
     removeMany: {
-      method: 'post',
-      type: 'delete'
+      method: 'post'
     },
     find: {
-      method: 'post',
-      type: 'read'
+      method: 'post'
     },
     findOne: {
-      method: 'post',
-      type: 'read'
+      method: 'post'
     },
     loadPaged: {
       method: 'get',
       getPath: ( collectionSlug: string, actionSlug: string ) =>
         `${ collectionSlug }/${ actionSlug }/:pageSize/:pageIndex?`,
       getResult: async (
-        collectionKey, store, action, type, req
+        collectionKey, store, action, req
       ) => {
         const collection = store.collections[ collectionKey ]
         const exec = collection[ action ]
@@ -100,28 +87,25 @@ export const createCollectionRoutes = <TEntityMap>(
         const result = await exec( pageSize, pageIndex )
 
         return handleResolve( result, store, req )
-      },
-      type: 'read'
+      }
     }
   }
 
   const routes: StoreRoute<TEntityMap>[] = []
-
+  
   eachKeyValueMap( storeRouteData, ( config, action ) => {
     if( config === undefined ) 
       throw Error( `The route config at ${ action } was undefined` )
 
-    const { getPath, getResult, type } = config
-
-    if( readOnly && type !== 'read' ) return
+    const { getPath, getResult } = config
 
     const route = (
       config.method === 'post' ?
-        postRoute(
-          collectionKey, store, action, type, getPath, getResult
+        postStoreRoute(
+          collectionKey, store, action, getPath, getResult
         ) :
-        getRoute(
-          collectionKey, store, action, type, getPath, getResult,
+        getStoreRoute(
+          collectionKey, store, action, getPath, getResult,
           config.omitId
         )
     )
@@ -137,14 +121,12 @@ interface GetConfig<TEntityMap, TResult = any> {
   omitId?: boolean
   getPath?: GetPath
   getResult?: GetResult<TEntityMap, TResult>
-  type: ActionType
 }
 
 interface PostConfig<TEntityMap, TResult = any> {
-  method: Method & 'post',
+  method: Method & 'post'
   getPath?: GetPath
-  getResult?: GetResult<TEntityMap, TResult>,
-  type: ActionType
+  getResult?: GetResult<TEntityMap, TResult>
 }
 
 type RouteConfig<TEntityMap, TResult = any> = (
@@ -160,7 +142,6 @@ export const defaultGetResult = async <TEntityMap>(
   collectionKey: keyof TEntityMap,
   store: EntitySchemaDb<TEntityMap>,
   action: keyof DbCollection<TEntityMap>,
-  type: ActionType,
   req: Request,
   omitId?: boolean
 ) => {
@@ -180,7 +161,6 @@ export const defaultPostResult = async <TEntityMap>(
   collectionKey: keyof TEntityMap,
   store: EntitySchemaDb<TEntityMap>,
   action: keyof DbCollection<TEntityMap>,
-  type: ActionType,
   req: Request
 ) => {
   const arg = req.body

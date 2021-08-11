@@ -1,32 +1,34 @@
 import { RequestHandler, Application } from 'express';
 import { Request } from 'express-serve-static-core';
+import { NullablePerms, SymbolicNotation } from '@mojule/mode';
 import { DbCollection, EntitySchemaDb } from '@mojule/entity-app';
-export interface Route<TMeta = any> {
+export declare type Route<TMeta = any> = {
     method: Method;
     path: string;
     handlers: RequestHandler[];
-    access: RouteAccess;
     meta?: TMeta;
-}
+    access?: RouteAccess;
+};
 export declare type RouteAccess = {
     owner: string;
     group: string;
-    permissions: number;
-    require: number;
+    permissions: SymbolicNotation;
+    require: ActionType;
     isDirectory: boolean;
 };
-export interface CollectionRouteMeta<TEntityMap> {
+export declare type CollectionRouteMeta<TEntityMap> = {
     collectionKey: keyof TEntityMap;
-}
-export interface StoreRouteMeta<TEntityMap> extends CollectionRouteMeta<TEntityMap> {
+};
+export declare type StoreRouteMeta<TEntityMap> = CollectionRouteMeta<TEntityMap> & {
     action: keyof DbCollection<TEntityMap>;
-}
-export interface StoreRoute<TEntityMap> extends Route<StoreRouteMeta<TEntityMap>> {
+};
+export declare type StoreRoute<TEntityMap> = Route<StoreRouteMeta<TEntityMap>> & {
     meta: StoreRouteMeta<TEntityMap>;
-}
-export interface SchemaRoute<TEntityMap> extends Route<CollectionRouteMeta<TEntityMap>> {
+    access?: RouteAccess;
+};
+export declare type SchemaRoute<TEntityMap> = Route<CollectionRouteMeta<TEntityMap>> & {
     meta: CollectionRouteMeta<TEntityMap>;
-}
+};
 export declare type Method = keyof Application & ('get' | 'post');
 export interface GetPath {
     (collectionSlug: string, actionSlug: string, omitId?: boolean): string;
@@ -34,3 +36,4 @@ export interface GetPath {
 export interface GetResult<TEntityMap, TResult = any> {
     (collectionKey: keyof TEntityMap, store: EntitySchemaDb<TEntityMap>, action: keyof DbCollection<TEntityMap>, req: Request, omitId?: boolean): Promise<TResult>;
 }
+export declare type ActionType = NullablePerms;

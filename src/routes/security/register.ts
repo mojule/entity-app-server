@@ -67,8 +67,7 @@ export const createSecurityRegisterRoutes = async <EntityMap extends SecureEntit
 
         res.redirect( '/verify-sent' ) 
       }
-    ],
-    roles: []
+    ]
   }
 
   return { register }

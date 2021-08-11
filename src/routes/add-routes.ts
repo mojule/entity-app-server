@@ -18,14 +18,10 @@ export const addRoutes = (
 
     let allHandlers = handlers
 
-    if ( access.require ) {
-      const r = hasRequestBit( access.require, 'r' ) ? 'r' : '-'
-      const w = hasRequestBit( access.require, 'w' ) ? 'w' : '-'
-      const x = hasRequestBit( access.require, 'x' ) ? 'x' : '-'
-
+    if ( access ) {
       allHandlers = [
         (req, _res, next) => {
-          log.info(`${req.path} requires access`, [ r, w, x ].join(''))
+          log.info(`${req.path} requires access ${ access.require }`)
 
           next()
         },
@@ -37,9 +33,11 @@ export const addRoutes = (
 
           next()
         },
-        createRouteAccessHandler( route.access, isUserInGroup ),
+        createRouteAccessHandler( access, isUserInGroup ),
         ...handlers
       ]
+    } else {
+      log.info( `${ method } ${ path } has no access requirement` )
     }
 
     app[method](path, ...allHandlers)

@@ -45,8 +45,7 @@ const createSecurityRegisterRoutes = async (db, options) => {
                 await util_1.delayPromise(250 - elapsed);
                 res.redirect('/verify-sent');
             }
-        ],
-        roles: []
+        ]
     };
     return { register };
 };

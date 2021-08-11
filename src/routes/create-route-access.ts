@@ -1,5 +1,5 @@
 import { IsUserInGroup } from '@mojule/entity-app'
-import { AccessOptions, canAccess } from '@mojule/mode'
+import { accessMasks, AccessOptions, canAccess, NullableKey, parseSymbolicNotation, PermKey, r, w, x } from '@mojule/mode'
 import { Handler } from 'express'
 import { RouteAccess } from './types'
 
@@ -14,10 +14,19 @@ export const createRouteAccessHandler = (
       isRoot: await isUserInGroup( name, 'root' ),
       isOwner: name === access.owner,
       isGroup: await isUserInGroup( name, access.group ),
-      permissions: access.permissions
+      permissions: parseSymbolicNotation( access.permissions )
     }
+
+    // is there a method for this already?
+    const accessKeys = (
+      access.require.split('').filter( s => s !== '-' ) as PermKey[]
+    )
+
+    const request = accessKeys.reduce(
+      ( req, key ) => req | accessMasks[ key ], 0
+    )
     
-    if( canAccess( access.require, options ) ){
+    if( canAccess( request, options ) ){
       return next()
     }
 

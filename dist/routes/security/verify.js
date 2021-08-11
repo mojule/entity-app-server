@@ -8,7 +8,6 @@ const createSecurityVerifyRoutes = async (db) => {
     const verify = {
         method: 'get',
         path: 'verify/:secret',
-        roles: [],
         handlers: [
             delay_handler_1.delayHandler,
             async (req, res) => {

@@ -26,7 +26,6 @@ export const createSecurityForgotRoutes =  async <EntityMap extends SecureEntity
     const forgotPassword: Route = {
       method: 'post',
       path: 'forgot-password',
-      roles: [],
       handlers: [
         postHandler,
         delayHandler,
@@ -69,7 +68,6 @@ export const createSecurityForgotRoutes =  async <EntityMap extends SecureEntity
     const resetPassword: Route = {
       method: 'get',
       path: 'reset-password/:secret',
-      roles: [],
       handlers: [
         delayHandler,
         async (req, res) => {
@@ -100,7 +98,6 @@ export const createSecurityForgotRoutes =  async <EntityMap extends SecureEntity
     const changePassword: Route = {
       method: 'post',
       path: 'change-password',
-      roles: [],
       handlers: [
         postHandler,
         delayHandler,

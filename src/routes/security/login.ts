@@ -22,8 +22,7 @@ export const createSecurityLoginRoutes = async (
         'local',
         { successReturnToOrRedirect: '/', failureRedirect: '/login' }
       )
-    ],
-    roles: []
+    ]
   }
 
   const logout: Route = {
@@ -35,8 +34,7 @@ export const createSecurityLoginRoutes = async (
 
         res.redirect( '/' )
       }
-    ],
-    roles: []
+    ]
   }
 
   return { login, logout }

@@ -12,7 +12,6 @@ const createSecurityForgotRoutes = async (db, options) => {
     const forgotPassword = {
         method: 'post',
         path: 'forgot-password',
-        roles: [],
         handlers: [
             postHandler,
             delay_handler_1.delayHandler,
@@ -44,7 +43,6 @@ const createSecurityForgotRoutes = async (db, options) => {
     const resetPassword = {
         method: 'get',
         path: 'reset-password/:secret',
-        roles: [],
         handlers: [
             delay_handler_1.delayHandler,
             async (req, res) => {
@@ -68,7 +66,6 @@ const createSecurityForgotRoutes = async (db, options) => {
     const changePassword = {
         method: 'post',
         path: 'change-password',
-        roles: [],
         handlers: [
             postHandler,
             delay_handler_1.delayHandler,

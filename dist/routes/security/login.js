@@ -13,8 +13,7 @@ const createSecurityLoginRoutes = async (passport, options = { loginHandlers: []
             delay_handler_1.delayHandler,
             ...options.loginHandlers,
             passport.authenticate('local', { successReturnToOrRedirect: '/', failureRedirect: '/login' })
-        ],
-        roles: []
+        ]
     };
     const logout = {
         method: 'get',
@@ -24,8 +23,7 @@ const createSecurityLoginRoutes = async (passport, options = { loginHandlers: []
                 req.logout();
                 res.redirect('/');
             }
-        ],
-        roles: []
+        ]
     };
     return { login, logout };
 };
